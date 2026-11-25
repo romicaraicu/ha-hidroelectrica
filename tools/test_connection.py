@@ -5,6 +5,7 @@ Utilizare:
     python3 -m venv .venv && .venv/bin/pip install aiohttp
     .venv/bin/python tools/test_connection.py            # cere utilizator + parolă
     .venv/bin/python tools/test_connection.py --dump out  # salvează JSON-urile brute
+    .venv/bin/python tools/test_connection.py --exemplu   # doar exemplul de factură (mascat)
 
 Datele salvate cu --dump conțin informații personale (adresă, POD, cont).
 Nu le publica; pentru depanare trimite doar secțiunea "Structura răspunsurilor".
@@ -45,6 +46,16 @@ def _shape(value, depth=0):
     return type(value).__name__
 
 
+def _log(message):
+    """Mesaje de progres și erori pe stderr: se văd și când ieșirea e redirecționată."""
+    print(message, file=sys.stderr, flush=True)
+
+
+def _ask(prompt):
+    print(prompt, end="", file=sys.stderr, flush=True)
+    return input()
+
+
 def _mask(value):
     """Forma unei valori fără conținut: cifre -> 9, litere -> a/A."""
     if value is None or isinstance(value, (bool, int, float)):
@@ -56,36 +67,40 @@ async def _safe(label, coro):
     try:
         return await coro
     except HidroelectricaError as err:
-        print(f"  ! {label}: {err}")
+        _log(f"  ! {label}: {err}")
         return None
 
 
 async def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dump", help="director în care se salvează JSON-urile brute")
+    parser.add_argument(
+        "--exemplu", action="store_true",
+        help="afișează doar exemplul de factură și plată (valori mascate)",
+    )
     args = parser.parse_args()
 
-    username = os.environ.get("IHIDRO_USER") or input("Utilizator iHidro: ")
-    password = os.environ.get("IHIDRO_PASSWORD") or getpass.getpass("Parolă: ")
+    username = os.environ.get("IHIDRO_USER") or _ask("Utilizator iHidro: ")
+    password = os.environ.get("IHIDRO_PASSWORD") or getpass.getpass("Parolă: ", stream=sys.stderr)
 
     raw: dict[str, dict] = {}
     async with aiohttp.ClientSession() as session:
         api = HidroelectricaApi(session, username, password)
         try:
-            print("→ Autentificare...")
+            _log("→ Autentificare...")
             await api.authenticate()
-            print("✓ Autentificat")
+            _log("✓ Autentificat")
             accounts = await api.get_accounts()
-            print(f"✓ {len(accounts)} loc(uri) de consum")
+            _log(f"✓ {len(accounts)} loc(uri) de consum")
         except HidroelectricaError as err:
-            print(f"✗ {type(err).__name__}: {err}")
+            _log(f"✗ {type(err).__name__}: {err}")
             return 1
         today = date.today()
         start = date(today.year - HISTORY_YEARS + 1, 1, 1)
         for acc in accounts:
             uan = account_id(acc)
             number = str(acc.get("AccountNumber") or "")
-            print(f"→ Date pentru contul …{uan[-4:]}")
+            _log(f"→ Date pentru contul …{uan[-4:]}")
             raw[uan] = {
                 "account": acc,
                 "bill": await _safe("GetBill", api.get_bill(uan, number)),
@@ -95,10 +110,11 @@ async def main() -> int:
                 "pods": await _safe("GetPods", api.get_pods(uan, number)),
             }
 
-    print("\n=== Structura răspunsurilor (fără valori) ===")
-    for i, data in enumerate(raw.values()):
-        print(f"--- cont {i + 1}")
-        print(json.dumps({k: _shape(v) for k, v in data.items()}, indent=2, ensure_ascii=False))
+    if not args.exemplu:
+        print("\n=== Structura răspunsurilor (fără valori) ===")
+        for i, data in enumerate(raw.values()):
+            print(f"--- cont {i + 1}")
+            print(json.dumps({k: _shape(v) for k, v in data.items()}, indent=2, ensure_ascii=False))
 
     print("\n=== Exemplu factură și plată (valori mascate: 9 = cifră, a/A = literă) ===")
     for i, data in enumerate(raw.values()):
@@ -109,6 +125,9 @@ async def main() -> int:
             "factura": {k: _mask(v) for k, v in (bills[0] if bills else {}).items()},
             "plata": {k: _mask(v) for k, v in (pays[0] if pays else {}).items()},
         }, indent=2, ensure_ascii=False))
+
+    if args.exemplu:
+        return 0
 
     print("\n=== Ce va vedea Home Assistant ===")
     for uan, data in raw.items():

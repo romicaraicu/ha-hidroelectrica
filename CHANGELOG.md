@@ -3,7 +3,7 @@
 ## 0.1.2
 
 - Numărul facturii: nu mai apare identificatorul criptat (ex. `Vrem+jy3…==`); se caută numărul lizibil (`invoiceNumber`, `exbel` etc.), iar dacă nu există se afișează „—”
-- `tools/test_connection.py` arată un exemplu de factură și plată cu valorile mascate, pentru depanare
+- `tools/test_connection.py` arată un exemplu de factură și plată cu valorile mascate, pentru depanare (`--exemplu` afișează doar această secțiune); întrebările și mesajele de progres apar și când ieșirea e redirecționată
 
 ## 0.1.1
 
