@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "iHidro account",
+        "description": "Enter the username and password you use on ihidro.ro or in the iHidro app.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "accounts": {
+        "title": "Consumption locations",
+        "description": "Choose the consumption locations to monitor.",
+        "data": {
+          "accounts": "Consumption locations",
+          "scan_interval": "Update interval (hours)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "iHidro re-authentication",
+        "description": "The password for {username} is no longer accepted. Enter the new password.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid username or password.",
+      "cannot_connect": "Cannot connect to iHidro. Try again later.",
+      "no_accounts": "The account has no consumption locations.",
+      "unknown": "Unexpected error. Check the log."
+    },
+    "abort": {
+      "already_configured": "This iHidro account is already configured.",
+      "reauth_successful": "Re-authentication successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Hidroelectrica settings",
+        "data": {
+          "accounts": "Consumption locations",
+          "scan_interval": "Update interval (hours)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "loc_consum": {
+        "name": "Consumption location"
+      },
+      "consum_ultima_luna": {
+        "name": "Last month consumption"
+      },
+      "consum_an_curent": {
+        "name": "Current year consumption"
+      },
+      "cost_an_curent": {
+        "name": "Paid this year"
+      },
+      "total_de_plata": {
+        "name": "Amount due"
+      },
+      "facturi_neplatite": {
+        "name": "Unpaid invoices"
+      },
+      "facturi_platite": {
+        "name": "Paid invoices"
+      },
+      "ultima_factura": {
+        "name": "Latest invoice"
+      },
+      "urmatoarea_scadenta": {
+        "name": "Next due date"
+      },
+      "ultima_plata": {
+        "name": "Last payment"
+      },
+      "perioada_index": {
+        "name": "Meter reading period"
+      },
+      "perioada_index_inceput": {
+        "name": "Meter reading period start"
+      },
+      "perioada_index_sfarsit": {
+        "name": "Meter reading period end"
+      }
+    },
+    "binary_sensor": {
+      "perioada_index_activa": {
+        "name": "Meter reading allowed"
+      },
+      "factura_restanta": {
+        "name": "Overdue invoice"
+      }
+    },
+    "button": {
+      "actualizare": {
+        "name": "Refresh data"
+      }
+    }
+  }
+}

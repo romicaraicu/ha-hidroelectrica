@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Cont iHidro",
+        "description": "Introdu numele de utilizator și parola folosite pe ihidro.ro sau în aplicația iHidro.",
+        "data": {
+          "username": "Nume de utilizator",
+          "password": "Parolă"
+        }
+      },
+      "accounts": {
+        "title": "Locuri de consum",
+        "description": "Alege locurile de consum pe care vrei să le monitorizezi.",
+        "data": {
+          "accounts": "Locuri de consum",
+          "scan_interval": "Interval de actualizare (ore)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reautentificare iHidro",
+        "description": "Parola pentru {username} nu mai este acceptată. Introdu parola nouă.",
+        "data": {
+          "password": "Parolă"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Nume de utilizator sau parolă incorecte.",
+      "cannot_connect": "Nu mă pot conecta la iHidro. Încearcă din nou mai târziu.",
+      "no_accounts": "Contul nu are niciun loc de consum asociat.",
+      "unknown": "Eroare neașteptată. Verifică jurnalul (log)."
+    },
+    "abort": {
+      "already_configured": "Acest cont iHidro este deja configurat.",
+      "reauth_successful": "Reautentificare reușită."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Setări Hidroelectrica",
+        "data": {
+          "accounts": "Locuri de consum",
+          "scan_interval": "Interval de actualizare (ore)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "loc_consum": {
+        "name": "Loc de consum"
+      },
+      "consum_ultima_luna": {
+        "name": "Consum ultima lună"
+      },
+      "consum_an_curent": {
+        "name": "Consum an curent"
+      },
+      "cost_an_curent": {
+        "name": "Plătit în anul curent"
+      },
+      "total_de_plata": {
+        "name": "Total de plată"
+      },
+      "facturi_neplatite": {
+        "name": "Facturi neplătite"
+      },
+      "facturi_platite": {
+        "name": "Facturi plătite"
+      },
+      "ultima_factura": {
+        "name": "Ultima factură"
+      },
+      "urmatoarea_scadenta": {
+        "name": "Următoarea scadență"
+      },
+      "ultima_plata": {
+        "name": "Ultima plată"
+      },
+      "perioada_index": {
+        "name": "Perioadă transmitere index"
+      },
+      "perioada_index_inceput": {
+        "name": "Început perioadă index"
+      },
+      "perioada_index_sfarsit": {
+        "name": "Sfârșit perioadă index"
+      }
+    },
+    "binary_sensor": {
+      "perioada_index_activa": {
+        "name": "Transmitere index permisă"
+      },
+      "factura_restanta": {
+        "name": "Factură restantă"
+      }
+    },
+    "button": {
+      "actualizare": {
+        "name": "Actualizare date"
+      }
+    }
+  }
+}

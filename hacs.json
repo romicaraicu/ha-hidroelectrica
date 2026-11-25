@@ -1,0 +1,6 @@
+{
+  "name": "Hidroelectrica",
+  "render_readme": true,
+  "country": ["RO"],
+  "homeassistant": "2024.12.0"
+}

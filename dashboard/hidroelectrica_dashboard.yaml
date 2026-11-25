@@ -1,0 +1,232 @@
+# Dashboard Hidroelectrica pentru Home Assistant
+# ----------------------------------------------
+# Folosește doar carduri standard (fără carduri custom din Marketplace sau HACS).
+#
+# 1. Înlocuiește peste tot `0000000000` cu numărul contului (codul locului de
+#    consum, "UtilityAccountNumber"). Îl găsești în
+#    Setări -> Dispozitive și servicii -> Hidroelectrica -> dispozitiv -> Loc de consum -> atributul "cont".
+#    Sau rulează: python3 tools/genereaza_dashboard.py 8000123456
+# 2. Setări -> Panouri de bord -> Adaugă panou -> "Pornește de la zero"
+# 3. Deschide panoul -> ✏️ -> ⋮ -> "Editor de configurație brută" -> lipește tot fișierul.
+
+title: Hidroelectrica
+views:
+  - title: Hidroelectrica
+    path: hidroelectrica
+    icon: mdi:hydro-power
+    type: sections
+    max_columns: 3
+    sections:
+      # ------------------------------------------------------------ SUMAR
+      - type: grid
+        cards:
+          - type: heading
+            heading: Sumar
+            icon: mdi:home-lightning-bolt-outline
+            badges:
+              - type: entity
+                entity: binary_sensor.hidroelectrica_0000000000_factura_restanta
+                show_state: true
+                color: red
+                visibility:
+                  - condition: state
+                    entity: binary_sensor.hidroelectrica_0000000000_factura_restanta
+                    state: "on"
+          - type: markdown
+            content: |-
+              {% set s = 'sensor.hidroelectrica_0000000000_loc_consum' %}
+              ### {{ states(s) }}
+
+              Cont **{{ state_attr(s, 'cont') }}**
+              · POD **{{ state_attr(s, 'pod') or '—' }}**
+              {% if state_attr(s, 'distribuitor') %}· Distribuitor **{{ state_attr(s, 'distribuitor') }}**{% endif %}
+          - type: tile
+            entity: sensor.hidroelectrica_0000000000_total_de_plata
+            name: Total de plată
+            color: orange
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: sensor.hidroelectrica_0000000000_urmatoarea_scadenta
+            name: Scadență
+            color: deep-orange
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: sensor.hidroelectrica_0000000000_consum_ultima_luna
+            name: Consum ultima lună
+            color: amber
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: sensor.hidroelectrica_0000000000_consum_an_curent
+            name: Consum an curent
+            color: yellow
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: sensor.hidroelectrica_0000000000_ultima_plata
+            name: Ultima plată
+            color: green
+            grid_options:
+              columns: 6
+          - type: tile
+            entity: button.hidroelectrica_0000000000_actualizare
+            name: Actualizează
+            color: blue
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.hidroelectrica_0000000000_actualizare
+            grid_options:
+              columns: 6
+
+      # ---------------------------------------------- TRANSMITERE INDEX
+      - type: grid
+        cards:
+          - type: heading
+            heading: Transmitere index
+            icon: mdi:counter
+          - type: markdown
+            content: |-
+              {% set s = 'sensor.hidroelectrica_0000000000_perioada_index' %}
+              {% if is_state('binary_sensor.hidroelectrica_0000000000_perioada_index_activa', 'on') %}
+              <ha-alert alert-type="success">
+              **Poți transmite indexul acum!** Mai ai {{ state_attr(s, 'zile_ramase') }} zile.
+              </ha-alert>
+              {% elif state_attr(s, 'zile_pana_la_inceput') %}
+              <ha-alert alert-type="info">
+              Perioada începe în {{ state_attr(s, 'zile_pana_la_inceput') }} zile.
+              </ha-alert>
+              {% endif %}
+
+              **Perioadă:** {{ states(s) }}
+
+              Indexul se transmite din aplicația iHidro sau de pe [ihidro.ro](https://ihidro.ro/portal/).
+          - type: tile
+            entity: binary_sensor.hidroelectrica_0000000000_perioada_index_activa
+            name: Transmitere permisă
+            grid_options:
+              columns: 12
+
+      # --------------------------------------------------------- FACTURI
+      - type: grid
+        cards:
+          - type: heading
+            heading: Facturi de plată
+            icon: mdi:file-alert-outline
+          - type: markdown
+            content: |-
+              {% set f = state_attr('sensor.hidroelectrica_0000000000_facturi_neplatite', 'facturi') or [] %}
+              {% if f | count == 0 %}
+              <ha-alert alert-type="success">Nu ai facturi de plată. 🎉</ha-alert>
+              {% else %}
+              | Nr. | Emisă | Scadență | Rest | |
+              |:--|:--|:--|--:|:--|
+              {% for i in f -%}
+              | {{ i.numar }} | {{ (i.data_emitere | as_datetime).strftime('%d.%m.%Y') if i.data_emitere else '—' }} | {{ (i.scadenta | as_datetime).strftime('%d.%m.%Y') if i.scadenta else '—' }} | **{{ '%.2f' | format(i.rest_plata) }}** | {{ '🔴 restantă' if i.restanta else ('🟠 parțial' if i.status == 'Parțial plătită' else '🟡') }} |
+              {% endfor %}
+
+              **Total: {{ '%.2f' | format(state_attr('sensor.hidroelectrica_0000000000_facturi_neplatite', 'total_rest_plata')) }} lei**
+              {% endif %}
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Facturi plătite
+            icon: mdi:file-check-outline
+          - type: markdown
+            content: |-
+              {% set f = state_attr('sensor.hidroelectrica_0000000000_facturi_platite', 'facturi') or [] %}
+              {% if f | count == 0 %}
+              Nu există facturi plătite în istoric.
+              {% else %}
+              | Nr. | Emisă | Valoare |
+              |:--|:--|--:|
+              {% for i in f -%}
+              | {{ i.numar }} | {{ (i.data_emitere | as_datetime).strftime('%d.%m.%Y') if i.data_emitere else '—' }} | {{ '%.2f' | format(i.valoare) }} lei |
+              {% endfor %}
+              {% endif %}
+          - type: markdown
+            content: |-
+              {% set p = state_attr('sensor.hidroelectrica_0000000000_ultima_plata', 'plati') or [] %}
+              **Plăți recente**
+              {% if p | count == 0 %}
+
+              Nu există plăți în istoric.
+              {% else %}
+
+              | Data | Sumă | Canal |
+              |:--|--:|:--|
+              {% for x in p -%}
+              | {{ (x.data | as_datetime).strftime('%d.%m.%Y') if x.data else '—' }} | {{ '%.2f' | format(x.suma or 0) }} lei | {{ x.canal or '—' }} |
+              {% endfor %}
+              {% endif %}
+
+      # ---------------------------------------------------------- CONSUM
+      - type: grid
+        cards:
+          - type: heading
+            heading: Consum pe luni
+            icon: mdi:chart-bar
+          - type: markdown
+            content: |-
+              {% set h = state_attr('sensor.hidroelectrica_0000000000_consum_ultima_luna', 'istoric') or [] %}
+              {% set maxv = (h | map(attribute='kwh') | max) if h else 0 %}
+              {% if h | count == 0 %}
+              Nu există date de consum.
+              {% else %}
+              | Lună | kWh | |
+              |:--|--:|:--|
+              {% for e in h[:12] -%}
+              | {{ e.luna }} | **{{ e.kwh | round(0) | int }}** | {{ '█' * ((e.kwh / maxv * 20) | round(0) | int) if maxv else '' }} |
+              {% endfor %}
+              {% endif %}
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Consum pe ani
+            icon: mdi:chart-timeline-variant
+          - type: markdown
+            content: |-
+              {% set a = state_attr('sensor.hidroelectrica_0000000000_consum_an_curent', 'consum_anual') or {} %}
+              {% set maxv = (a.values() | max) if a else 0 %}
+              {% if a | count == 0 %}
+              Nu există date de consum.
+              {% else %}
+              | An | kWh | |
+              |:--|--:|:--|
+              {% for an, kwh in a | dictsort(reverse=true) -%}
+              | **{{ an }}** | **{{ kwh | round(0) | int }}** | {{ '█' * ((kwh / maxv * 20) | round(0) | int) if maxv else '' }} |
+              {% endfor %}
+              {% endif %}
+
+      # ------------------------------------------------------- COST PE ANI
+      - type: grid
+        cards:
+          - type: heading
+            heading: Cost pe ani
+            icon: mdi:cash-multiple
+          - type: tile
+            entity: sensor.hidroelectrica_0000000000_cost_an_curent
+            name: Plătit anul acesta
+            color: green
+            grid_options:
+              columns: 12
+          - type: markdown
+            content: |-
+              {% set c = state_attr('sensor.hidroelectrica_0000000000_cost_an_curent', 'cost_anual') or {} %}
+              {% set maxv = (c.values() | map(attribute='facturat') | max) if c else 0 %}
+              {% if c | count == 0 %}
+              Nu există facturi.
+              {% else %}
+              | An | Plătit | Facturat | De plată | kWh | lei/kWh | |
+              |:--|--:|--:|--:|--:|--:|:--|
+              {% for an, v in c | dictsort(reverse=true) -%}
+              | **{{ an }}** | **{{ '%.2f' | format(v.platit) }}** | {{ '%.2f' | format(v.facturat) }} | {{ '%.2f' | format(v.de_plata) if v.de_plata else '—' }} | {{ v.kwh | round(0) | int if v.kwh else '—' }} | {{ '%.2f' | format(v.lei_pe_kwh) if v.lei_pe_kwh else '—' }} | {{ '█' * ((v.facturat / maxv * 12) | round(0) | int) if maxv > 0 and v.facturat > 0 else '' }} |
+              {% endfor %}
+
+              <small>„Facturat” după data emiterii facturii, „Plătit” după data plății. Sume în lei.</small>
+              {% endif %}

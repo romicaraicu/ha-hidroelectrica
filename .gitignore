@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+dump/
+# fișiere generate de tools/genereaza_dashboard.py (conțin numărul contului)
+dashboard/hidroelectrica_*.yaml
+!dashboard/hidroelectrica_dashboard.yaml
+dashboard/card_grafic_consum_*.yaml
+!dashboard/card_grafic_consum_apexcharts.yaml
+.DS_Store
+.pytest_cache/
+release-notes.md

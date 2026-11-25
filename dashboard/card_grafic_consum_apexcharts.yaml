@@ -1,0 +1,66 @@
+# Grafice de consum (opțional) - necesită cardul apexcharts-card:
+#   Setări -> Marketplace -> Add from link -> RomRider/apexcharts-card -> Install
+#   (pe Home Assistant mai vechi de 2026.11: HACS -> Frontend -> apexcharts-card).
+# Înlocuiește `0000000000` cu numărul contului și adaugă cardul într-un
+# dashboard (Adaugă card -> Manual -> lipește). Sunt două grafice: pe luni și pe ani.
+
+type: vertical-stack
+cards:
+  - type: custom:apexcharts-card
+    header:
+      show: true
+      title: Consum lunar (kWh)
+      show_states: false
+    graph_span: 2y
+    span:
+      end: month
+    apex_config:
+      chart:
+        height: 260
+      plotOptions:
+        bar:
+          columnWidth: 60%
+          borderRadius: 4
+      dataLabels:
+        enabled: false
+    series:
+      - entity: sensor.hidroelectrica_0000000000_consum_ultima_luna
+        name: Consum
+        type: column
+        color: "#1E88E5"
+        data_generator: |
+          const h = entity.attributes.istoric || [];
+          return h
+            .filter(e => e.data)
+            .map(e => [new Date(e.data + "T12:00:00").getTime(), e.kwh])
+            .reverse();
+  - type: custom:apexcharts-card
+    header:
+      show: true
+      title: Consum anual (kWh)
+      show_states: false
+    graph_span: 5y
+    span:
+      end: year
+    apex_config:
+      chart:
+        height: 220
+      plotOptions:
+        bar:
+          columnWidth: 50%
+          borderRadius: 4
+      dataLabels:
+        enabled: true
+      xaxis:
+        labels:
+          format: yyyy
+    series:
+      - entity: sensor.hidroelectrica_0000000000_consum_an_curent
+        name: Consum
+        type: column
+        color: "#43A047"
+        data_generator: |
+          const a = entity.attributes.consum_anual || {};
+          return Object.entries(a)
+            .map(([an, kwh]) => [new Date(Number(an), 6, 1).getTime(), kwh])
+            .sort((x, y) => x[0] - y[0]);
