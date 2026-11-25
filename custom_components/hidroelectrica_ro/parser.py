@@ -532,6 +532,38 @@ def _payment(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _current_bill_invoice(bill: dict[str, Any]) -> Invoice | None:
+    """Factura curentă din GetBill, ca Invoice (None dacă nu are valoare)."""
+    amount = to_float(_first(bill, "billamount", "BillAmount", "currentCharges", "CurrentCharges"))
+    if amount is None or amount <= AMOUNT_EPSILON:
+        return None
+    return Invoice(
+        numar=invoice_number(bill),
+        data_emitere=parse_date(
+            _first(bill, "billdate", "BillDate", "billDate", "invoicedate", "InvoiceDate", "invoiceDate")
+        ),
+        scadenta=parse_date(_first(bill, "duedate", "DueDate", "dueDate")),
+        valoare=amount,
+        perioada=_first(bill, "billPeriod", "BillPeriod", "billperiod"),
+        raw={**bill, "_sursa": "GetBill"},
+    )
+
+
+def _same_invoice(a: Invoice, b: Invoice) -> bool:
+    """Aceeași factură: același număr lizibil, sau aceeași valoare și
+    (aceeași scadență sau aceeași dată de emitere)."""
+    if a.numar != "—" and a.numar == b.numar:
+        return True
+    if abs(a.valoare - b.valoare) > 0.01:
+        return False
+    if a.scadenta and a.scadenta == b.scadenta:
+        return True
+    if a.data_emitere and a.data_emitere == b.data_emitere:
+        return True
+    # GetBill fără număr și fără date: considerăm aceeași factură dacă suma coincide
+    return a.numar == "—" and not a.scadenta and not a.data_emitere
+
+
 def account_id(account: dict[str, Any]) -> str:
     return str(account.get("UtilityAccountNumber") or "").strip()
 
@@ -544,6 +576,11 @@ def build_account_data(uan: str, raw: dict[str, Any]) -> AccountData:
 
     bill = find_record(raw.get("bill"), "rembalance", "billamount", "duedate", "invoicenumber")
     balance = to_float(_first(bill, "rembalance", "RemBalance", "TotalDue", "AmountDue"))
+    current = _current_bill_invoice(bill)
+    if current is not None and not any(_same_invoice(current, inv) for inv in invoices[:3]):
+        # Factura curentă nu apare încă în istoric: fără ea, soldul s-ar atribui
+        # unor facturi deja plătite.
+        invoices.insert(0, current)
     allocate_balance(invoices, balance)
 
     payments = [

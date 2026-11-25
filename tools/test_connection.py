@@ -96,6 +96,12 @@ def _print_invoices(data, uan, label):
     pays = find_list(data.get("history"), "objBillingPaymentHistoryEntity", "PaymentHistory")
     print(f"--- {label}")
     print("GetBill:", json.dumps({k: _visible(v) for k, v in bill.items()}, ensure_ascii=False))
+    for inv in acc.invoices:
+        if inv.raw.get("_sursa") == "GetBill":
+            print(
+                f"\nFactura curentă (din GetBill, lipsește din istoric): {inv.valoare:.2f} lei"
+                f" | scadență {inv.scadenta} | integrare: {inv.status} (rest {inv.rest_plata:.2f})"
+            )
     print(f"\nFacturi în istoric: {len(bills)}  (cea mai nouă prima)")
     by_raw = {id(i.raw): i for i in acc.invoices}
     for row in sorted(bills, key=lambda r: by_raw[id(r)].data_emitere or date.min, reverse=True):

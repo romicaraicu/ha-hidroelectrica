@@ -5,6 +5,7 @@ from datetime import date
 from custom_components.hidroelectrica_ro.parser import (
     Invoice,
     allocate_balance,
+    build_account_data,
     month_of,
     parse_date,
     parse_usage,
@@ -82,3 +83,53 @@ def test_invoice_number_skips_encrypted_id() -> None:
     assert invoice_number({"invoiceId": enc, "InvoiceNumber": "HE 1234"}) == "HE 1234"
     assert invoice_number({"invoiceId": enc}) == "—"
     assert invoice_number({"invoiceId": "998877"}) == "998877"
+
+
+def _history(*rows):
+    return {"result": {"objBillingHistoryEntity": [
+        {"invoiceId": "Xx+Yy==", "invoiceDate": d, "dueDate": due, "amount": a}
+        for d, due, a in rows
+    ]}}
+
+
+def test_current_bill_missing_from_history_takes_the_balance() -> None:
+    """Caz real: sold 307.21 = o singură factură nouă, care nu e încă în istoric.
+    Fără factura curentă, soldul ajungea pe facturi deja plătite."""
+    raw = {
+        "bill": {"result": {"billamount": "307.21", "rembalance": "307.21",
+                            "duedate": "12/15/2026"}},
+        "history": _history(
+            ("10/20/2026", "11/10/2026", "134.36"),
+            ("09/20/2026", "10/10/2026", "250.00"),
+        ),
+    }
+    acc = build_account_data("8001", raw)
+    assert [(i.valoare, i.status, i.rest_plata) for i in acc.invoices] == [
+        (307.21, "neplatita", 307.21), (134.36, "platita", 0.0), (250.0, "platita", 0.0),
+    ]
+    assert acc.invoices[0].scadenta == date(2026, 12, 15)
+    assert len(acc.unpaid_invoices) == 1 and acc.total_balance == 307.21
+
+
+def test_current_bill_already_in_history_is_not_duplicated() -> None:
+    raw = {
+        "bill": {"result": {"billamount": "307.21", "rembalance": "307.21",
+                            "duedate": "12/15/2026"}},
+        "history": _history(
+            ("11/25/2026", "12/15/2026", "307.21"),
+            ("10/20/2026", "11/10/2026", "134.36"),
+        ),
+    }
+    acc = build_account_data("8001", raw)
+    assert [(i.valoare, i.status) for i in acc.invoices] == [
+        (307.21, "neplatita"), (134.36, "platita"),
+    ]
+
+
+def test_zero_current_bill_is_ignored() -> None:
+    raw = {
+        "bill": {"result": {"billamount": "0", "rembalance": "0"}},
+        "history": _history(("10/20/2026", "11/10/2026", "134.36")),
+    }
+    acc = build_account_data("8001", raw)
+    assert len(acc.invoices) == 1 and acc.invoices[0].status == "platita"

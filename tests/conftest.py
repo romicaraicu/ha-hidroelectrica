@@ -35,7 +35,7 @@ def sample_raw():
             "IsDefaultAccount": True,
         }],
         "bill": {"result": {
-            "billamount": "180.00", "rembalance": "180.00",
+            "billamount": "150.00", "rembalance": "180.00",
             "duedate": us(t + timedelta(days=10)), "invoicenumber": "H0003",
         }},
         "history": {"result": {

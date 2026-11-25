@@ -2,6 +2,8 @@
 
 ## 0.1.2
 
+- Facturi de plată: factura curentă (din `GetBill`) e luată în calcul și când nu apare încă în istoricul de facturi. Înainte, soldul se atribuia unor facturi deja plătite, care apăreau greșit ca restante
+- `tools/test_connection.py --facturi`: diagnostic cu sumele, datele și statusul calculat pentru fiecare factură (identificatorii sunt mascați)
 - Numărul facturii: nu mai apare identificatorul criptat (ex. `Vrem+jy3…==`); se caută numărul lizibil (`invoiceNumber`, `exbel` etc.), iar dacă nu există se afișează „—”
 - `tools/test_connection.py` arată un exemplu de factură și plată cu valorile mascate, pentru depanare (`--exemplu` afișează doar această secțiune); întrebările și mesajele de progres apar și când ieșirea e redirecționată
 
