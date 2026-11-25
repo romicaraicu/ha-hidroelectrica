@@ -17,7 +17,7 @@ Cu `--dump out` se salvează și JSON-urile complete. **Acestea conțin date per
 ```yaml
 logger:
   logs:
-    custom_components.hidroelectrica: debug
+    custom_components.hidroelectrica_ro: debug
 ```
 
 ## 3. Diagnostic

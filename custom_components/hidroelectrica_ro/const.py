@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-DOMAIN = "hidroelectrica"
+DOMAIN = "hidroelectrica_ro"
 MANUFACTURER = "Hidroelectrica"
 
 # --- API ---

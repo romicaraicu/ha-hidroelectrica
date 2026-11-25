@@ -74,9 +74,9 @@ def sample_raw():
 def mock_api():
     raw = sample_raw()
     with patch(
-        "custom_components.hidroelectrica.HidroelectricaApi", autospec=True
+        "custom_components.hidroelectrica_ro.HidroelectricaApi", autospec=True
     ) as api_cls, patch(
-        "custom_components.hidroelectrica.config_flow.HidroelectricaApi", new=api_cls
+        "custom_components.hidroelectrica_ro.config_flow.HidroelectricaApi", new=api_cls
     ):
         api = api_cls.return_value
         api.authenticate = AsyncMock()

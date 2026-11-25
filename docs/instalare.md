@@ -55,19 +55,19 @@ Dacă vezi `✓ Autentificat` și cifrele seamănă cu cele din aplicație, poț
 1. **Setări** → **Marketplace** → **Add from link**
 2. Scrie `romicaraicu/ha-hidroelectrica` → **Add** (prima dată, Marketplace cere legătura cu GitHub)
 3. Dacă te întreabă de **Type**, alege **Integration**
-4. Deschide **Hidroelectrica** → **Install**
+4. Deschide **Hidroelectrica (iHidro)** → **Install**
 5. Dacă în **Reparații** apare o cerere de restart, accept-o
 
 ### B. HACS
 
 1. **HACS** → ⋮ → **Custom repositories**
 2. Adaugă `https://github.com/romicaraicu/ha-hidroelectrica`, tip **Integration**
-3. Caută *Hidroelectrica* → **Download**
+3. Caută *Hidroelectrica (iHidro)* → **Download**
 4. Repornește Home Assistant
 
 ### C. Copiere manuală
 
-Copiază folderul `custom_components/hidroelectrica` în `/config/custom_components/` (prin Samba, SSH sau *File editor*), ca să obții `/config/custom_components/hidroelectrica/manifest.json`. Repornește Home Assistant.
+Copiază folderul `custom_components/hidroelectrica_ro` în `/config/custom_components/` (prin Samba, SSH sau *File editor*), ca să obții `/config/custom_components/hidroelectrica_ro/manifest.json`. Repornește Home Assistant.
 
 ---
 
@@ -96,7 +96,7 @@ Dashboard-ul `dashboard/hidroelectrica_dashboard.yaml` folosește doar carduri i
 - **Consum pe luni** și **Consum pe ani**, cu bare
 - **Cost pe ani**: plătit, facturat, de plată, kWh, lei/kWh
 
-**Pas 1: află numărul contului.** E atributul `cont` al senzorului *Loc de consum* (sau numărul de serie al dispozitivului, dacă nu e POD-ul). Entitățile se numesc `sensor.hidroelectrica_<cont>_…`.
+**Pas 1: află numărul contului.** E atributul `cont` al senzorului *Loc de consum* (sau numărul de serie al dispozitivului, dacă nu e POD-ul). Entitățile se numesc `sensor.hidroelectrica_ro_<cont>_…`.
 
 **Pas 2: generează fișierele:**
 
@@ -129,4 +129,4 @@ Primești două grafice cu coloane: consumul lunar pe ultimii 2 ani și consumul
 
 **Ți-ai schimbat parola:** Home Assistant afișează *Reautentificare necesară*; apasă și introdu parola nouă.
 
-**Renunți:** **Setări** → **Dispozitive și servicii** → **Hidroelectrica** → ⋮ → **Șterge**, apoi dezinstalează din Marketplace/HACS (sau șterge `/config/custom_components/hidroelectrica`) și repornește.
+**Renunți:** **Setări** → **Dispozitive și servicii** → **Hidroelectrica** → ⋮ → **Șterge**, apoi dezinstalează din Marketplace/HACS (sau șterge `/config/custom_components/hidroelectrica_ro`) și repornește.

@@ -14,6 +14,8 @@ Dacă ai contract de energie electrică cu Hidroelectrica și folosești Home As
 
 > [!NOTE]
 > Proiect personal, neoficial, fără legătură cu Hidroelectrica. Citește aceleași date pe care le vezi și tu în aplicația iHidro.
+>
+> Domeniul integrării este `hidroelectrica_ro`, deci poate fi instalată alături de alte integrări Hidroelectrica (de ex. cnecrea/hidroelectrica, care folosește `hidroelectrica`).
 
 ---
 
@@ -45,7 +47,7 @@ Pe lângă senzori ai:
 
 **2. Adaugă contul**
 
-**Setări** → **Dispozitive și servicii** → **Adaugă integrare** → *Hidroelectrica* → utilizator + parolă iHidro
+**Setări** → **Dispozitive și servicii** → **Adaugă integrare** → *Hidroelectrica (iHidro)* → utilizator + parolă iHidro
 
 **3. (Opțional) Pune dashboard-ul**
 
@@ -111,7 +113,7 @@ Instalarea pe versiuni mai vechi (HACS sau manual) și dashboard-ul sunt explica
 <summary><b>Organizarea codului</b></summary>
 
 ```
-custom_components/hidroelectrica/
+custom_components/hidroelectrica_ro/
   api.py            client HTTP: login + apeluri API (fără Home Assistant)
   parser.py         transformă JSON-ul în date per loc de consum
   coordinator.py    citește periodic toate datele contului

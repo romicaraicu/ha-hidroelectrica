@@ -24,7 +24,7 @@ class HidroelectricaEntity(CoordinatorEntity[HidroelectricaCoordinator]):
         self._attr_translation_key = key
         self._attr_unique_id = f"{uan}_{key}"
         # Entity ID previzibil, folosit și de dashboard-ul inclus:
-        # sensor.hidroelectrica_<cont>_<cheie>
+        # sensor.hidroelectrica_ro_<cont>_<cheie>
         self.entity_id = f"{platform}.{DOMAIN}_{slugify(uan)}_{key}"
         data = coordinator.data.get(uan)
         self._attr_device_info = DeviceInfo(

@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from custom_components.hidroelectrica.parser import (
+from custom_components.hidroelectrica_ro.parser import (
     Invoice,
     allocate_balance,
     month_of,

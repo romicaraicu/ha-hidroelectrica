@@ -1,6 +1,6 @@
 {
-  "domain": "hidroelectrica",
-  "name": "Hidroelectrica",
+  "domain": "hidroelectrica_ro",
+  "name": "Hidroelectrica (iHidro)",
   "codeowners": ["@romicaraicu"],
   "config_flow": true,
   "dependencies": [],
@@ -8,7 +8,7 @@
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/romicaraicu/ha-hidroelectrica/issues",
-  "loggers": ["custom_components.hidroelectrica"],
+  "loggers": ["custom_components.hidroelectrica_ro"],
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

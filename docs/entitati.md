@@ -2,7 +2,7 @@
 
 [← Înapoi la README](../README.md)
 
-Fiecare loc de consum e un dispozitiv. Entitățile au ID-uri previzibile: `<platformă>.hidroelectrica_<cont>_<cheie>`, de ex. `sensor.hidroelectrica_8000123456_total_de_plata`.
+Fiecare loc de consum e un dispozitiv. Entitățile au ID-uri previzibile: `<platformă>.hidroelectrica_ro_<cont>_<cheie>`, de ex. `sensor.hidroelectrica_ro_8000123456_total_de_plata`.
 
 ## Senzori
 
@@ -45,12 +45,12 @@ Fiecare factură din liste are: `numar`, `data_emitere`, `scadenta`, `valoare`, 
 alias: Hidroelectrica - poți transmite indexul
 triggers:
   - trigger: state
-    entity_id: binary_sensor.hidroelectrica_8000123456_perioada_index_activa
+    entity_id: binary_sensor.hidroelectrica_ro_8000123456_perioada_index_activa
     to: "on"
 actions:
   - action: notify.notify
     data:
       message: >-
         Poți transmite indexul la Hidroelectrica până pe
-        {{ states('sensor.hidroelectrica_8000123456_perioada_index_sfarsit') }}.
+        {{ states('sensor.hidroelectrica_ro_8000123456_perioada_index_sfarsit') }}.
 ```

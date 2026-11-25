@@ -1,5 +1,11 @@
 # Istoric versiuni
 
+## 0.1.1
+
+- Domeniul integrării devine `hidroelectrica_ro` (folderul `custom_components/hidroelectrica_ro`), ca să nu intre în conflict cu alte integrări Hidroelectrica care folosesc `hidroelectrica`
+- Numele afișat devine „Hidroelectrica (iHidro)”
+- Entitățile se numesc acum `sensor.hidroelectrica_ro_<cont>_…`; dashboard-ul și graficele trebuie regenerate cu `tools/genereaza_dashboard.py`
+
 ## 0.1.0
 
 Prima versiune.

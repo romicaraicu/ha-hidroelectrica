@@ -22,7 +22,7 @@ import sys
 import types
 from pathlib import Path
 
-PKG_DIR = Path(__file__).resolve().parent.parent / "custom_components" / "hidroelectrica"
+PKG_DIR = Path(__file__).resolve().parent.parent / "custom_components" / "hidroelectrica_ro"
 
 # Încărcăm doar api.py + parser.py + const.py, fără __init__.py (care cere Home Assistant).
 _pkg = types.ModuleType("hidroelectrica")

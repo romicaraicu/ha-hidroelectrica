@@ -8,8 +8,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.hidroelectrica.api import HidroelectricaAuthError
-from custom_components.hidroelectrica.const import CONF_ACCOUNTS, DOMAIN
+from custom_components.hidroelectrica_ro.api import HidroelectricaAuthError
+from custom_components.hidroelectrica_ro.const import CONF_ACCOUNTS, DOMAIN
 
 from .conftest import UAN
 
@@ -28,7 +28,7 @@ async def test_config_flow_creates_entry(hass: HomeAssistant, mock_api) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY, result
     assert result["options"][CONF_ACCOUNTS] == [UAN]
     await hass.async_block_till_done()
-    assert hass.states.get(f"sensor.hidroelectrica_{UAN}_total_de_plata") is not None
+    assert hass.states.get(f"sensor.hidroelectrica_ro_{UAN}_total_de_plata") is not None
 
 
 async def test_config_flow_invalid_auth(hass: HomeAssistant, mock_api) -> None:
@@ -57,7 +57,7 @@ async def _setup(hass, mock_api):
 
 async def test_entities(hass: HomeAssistant, mock_api) -> None:
     await _setup(hass, mock_api)
-    s = lambda k: hass.states.get(f"sensor.hidroelectrica_{UAN}_{k}")  # noqa: E731
+    s = lambda k: hass.states.get(f"sensor.hidroelectrica_ro_{UAN}_{k}")  # noqa: E731
 
     assert s("loc_consum").state == "Str. Test 1, Iasi"
     assert s("loc_consum").attributes["pod"] == "RO003E000000001"
@@ -87,22 +87,22 @@ async def test_entities(hass: HomeAssistant, mock_api) -> None:
     assert costs[str(Y - 1)]["platit"] == 120.0 and costs[str(Y - 1)]["kwh"] == 200.0
     assert " - " in s("perioada_index").state
     assert s("perioada_index").attributes["zile_ramase"] == 3
-    assert hass.states.get(f"binary_sensor.hidroelectrica_{UAN}_perioada_index_activa").state == "on"
-    assert hass.states.get(f"binary_sensor.hidroelectrica_{UAN}_factura_restanta").state == "on"
-    assert hass.states.get(f"button.hidroelectrica_{UAN}_actualizare") is not None
+    assert hass.states.get(f"binary_sensor.hidroelectrica_ro_{UAN}_perioada_index_activa").state == "on"
+    assert hass.states.get(f"binary_sensor.hidroelectrica_ro_{UAN}_factura_restanta").state == "on"
+    assert hass.states.get(f"button.hidroelectrica_ro_{UAN}_actualizare") is not None
     # testele rulează în engleză; în română numele vine din ro.json
     assert s("total_de_plata").attributes["friendly_name"].endswith("Amount due")
 
 
 async def test_optional_endpoint_failure_keeps_working(hass: HomeAssistant, mock_api) -> None:
-    from custom_components.hidroelectrica.api import HidroelectricaConnectionError
+    from custom_components.hidroelectrica_ro.api import HidroelectricaConnectionError
 
     mock_api.get_usage.side_effect = HidroelectricaConnectionError("HTTP 500")
     mock_api.get_window_dates.side_effect = HidroelectricaConnectionError("HTTP 500")
     await _setup(hass, mock_api)
-    assert hass.states.get(f"sensor.hidroelectrica_{UAN}_total_de_plata").state == "180.0"
-    assert hass.states.get(f"sensor.hidroelectrica_{UAN}_consum_ultima_luna").state == "unknown"
-    assert hass.states.get(f"sensor.hidroelectrica_{UAN}_perioada_index").state == "Perioadă indisponibilă"
+    assert hass.states.get(f"sensor.hidroelectrica_ro_{UAN}_total_de_plata").state == "180.0"
+    assert hass.states.get(f"sensor.hidroelectrica_ro_{UAN}_consum_ultima_luna").state == "unknown"
+    assert hass.states.get(f"sensor.hidroelectrica_ro_{UAN}_perioada_index").state == "Perioadă indisponibilă"
 
 
 async def test_auth_failure_starts_reauth(hass: HomeAssistant, mock_api) -> None:
@@ -119,7 +119,7 @@ async def test_auth_failure_starts_reauth(hass: HomeAssistant, mock_api) -> None
 
 
 async def test_diagnostics_redacts(hass: HomeAssistant, mock_api) -> None:
-    from custom_components.hidroelectrica.diagnostics import (
+    from custom_components.hidroelectrica_ro.diagnostics import (
         async_get_config_entry_diagnostics,
     )
     entry = await _setup(hass, mock_api)
@@ -154,7 +154,7 @@ async def test_dashboard_templates_render(hass: HomeAssistant, mock_api) -> None
             for v in node:
                 walk(v)
         elif isinstance(node, str) and node.split(".")[0] in ("sensor", "binary_sensor", "button") \
-                and node.split(".")[-1].startswith("hidroelectrica_"):
+                and node.split(".")[-1].startswith("hidroelectrica_ro_"):
             assert hass.states.get(node) is not None, node
 
     walk(dash)

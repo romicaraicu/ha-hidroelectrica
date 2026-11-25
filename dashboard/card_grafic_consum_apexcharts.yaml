@@ -24,7 +24,7 @@ cards:
       dataLabels:
         enabled: false
     series:
-      - entity: sensor.hidroelectrica_0000000000_consum_ultima_luna
+      - entity: sensor.hidroelectrica_ro_0000000000_consum_ultima_luna
         name: Consum
         type: column
         color: "#1E88E5"
@@ -55,7 +55,7 @@ cards:
         labels:
           format: yyyy
     series:
-      - entity: sensor.hidroelectrica_0000000000_consum_an_curent
+      - entity: sensor.hidroelectrica_ro_0000000000_consum_an_curent
         name: Consum
         type: column
         color: "#43A047"

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from custom_components.hidroelectrica.api import (
+from custom_components.hidroelectrica_ro.api import (
     HidroelectricaApi,
     HidroelectricaAuthError,
     HidroelectricaConnectionError,
