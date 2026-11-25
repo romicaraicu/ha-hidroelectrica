@@ -1,5 +1,10 @@
 # Istoric versiuni
 
+## 0.1.2
+
+- Numărul facturii: nu mai apare identificatorul criptat (ex. `Vrem+jy3…==`); se caută numărul lizibil (`invoiceNumber`, `exbel` etc.), iar dacă nu există se afișează „—”
+- `tools/test_connection.py` arată un exemplu de factură și plată cu valorile mascate, pentru depanare
+
 ## 0.1.1
 
 - Domeniul integrării devine `hidroelectrica_ro` (folderul `custom_components/hidroelectrica_ro`), ca să nu intre în conflict cu alte integrări Hidroelectrica care folosesc `hidroelectrica`

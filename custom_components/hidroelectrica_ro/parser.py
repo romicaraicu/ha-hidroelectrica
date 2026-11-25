@@ -199,10 +199,32 @@ class Invoice:
         }
 
 
+# Câmpurile în care poate fi numărul facturii, în ordinea preferinței.
+# `invoiceId` e de obicei un identificator criptat (base64), folosit intern de
+# aplicație (ex. pentru PDF), deci e luat doar dacă arată ca un număr.
+_INVOICE_NUMBER_KEYS = (
+    "invoiceNumber", "InvoiceNumber", "invoicenumber", "invoiceNo", "InvoiceNo",
+    "exbel", "Exbel", "EXBEL", "billNumber", "BillNumber", "documentNumber",
+    "DocumentNumber", "opbel", "OPBEL", "invoiceId", "InvoiceId",
+)
+_READABLE_NUMBER = re.compile(r"[A-Za-z0-9][A-Za-z0-9 ._/-]{0,23}")
+
+
+def invoice_number(item: dict[str, Any]) -> str:
+    """Numărul facturii, ca pe factura tipărită; „—” dacă nu există unul lizibil."""
+    for key in _INVOICE_NUMBER_KEYS:
+        value = item.get(key)
+        if value in (None, ""):
+            continue
+        text = str(value).strip()
+        if _READABLE_NUMBER.fullmatch(text) and any(ch.isdigit() for ch in text):
+            return text.lstrip("0") or text
+    return "—"
+
+
 def _invoice(item: dict[str, Any]) -> Invoice:
-    number = _first(item, "invoiceId", "InvoiceId", "exbel", "invoicenumber", "InvoiceNumber", "invoiceNumber")
     return Invoice(
-        numar=str(number or "").strip().lstrip("0") or str(number or "—"),
+        numar=invoice_number(item),
         data_emitere=parse_date(_first(item, "invoiceDate", "InvoiceDate", "BillDate", "billDate")),
         scadenta=parse_date(_first(item, "dueDate", "DueDate", "duedate")),
         valoare=to_float(_first(item, "amount", "Amount", "billamount", "BillAmount")) or 0.0,

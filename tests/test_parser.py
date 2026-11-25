@@ -72,3 +72,13 @@ def test_parse_window_day_numbers_and_next() -> None:
     w = parse_window(body, today)
     assert (w.start, w.end, w.is_open) == (date(2026, 12, 20), date(2026, 12, 27), False)
     assert w.label == "20.12.2026 - 27.12.2026"
+
+
+def test_invoice_number_skips_encrypted_id() -> None:
+    from custom_components.hidroelectrica_ro.parser import invoice_number
+
+    enc = "Vrem+jy3ZmwyoeSwCMMGsNFf+bPL8nFpH1TzqilfYQ=="
+    assert invoice_number({"invoiceId": enc, "exbel": "0012345678"}) == "12345678"
+    assert invoice_number({"invoiceId": enc, "InvoiceNumber": "HE 1234"}) == "HE 1234"
+    assert invoice_number({"invoiceId": enc}) == "—"
+    assert invoice_number({"invoiceId": "998877"}) == "998877"

@@ -33,7 +33,7 @@ import aiohttp  # noqa: E402
 
 from hidroelectrica.api import HidroelectricaApi, HidroelectricaError  # noqa: E402
 from hidroelectrica.const import HISTORY_YEARS  # noqa: E402
-from hidroelectrica.parser import account_id, build_account_data  # noqa: E402
+from hidroelectrica.parser import account_id, build_account_data, find_list  # noqa: E402
 
 
 def _shape(value, depth=0):
@@ -43,6 +43,13 @@ def _shape(value, depth=0):
     if isinstance(value, list):
         return [_shape(value[0], depth + 1), f"x{len(value)}"] if value else []
     return type(value).__name__
+
+
+def _mask(value):
+    """Forma unei valori fără conținut: cifre -> 9, litere -> a/A."""
+    if value is None or isinstance(value, (bool, int, float)):
+        return value if not isinstance(value, (int, float)) or isinstance(value, bool) else type(value).__name__
+    return "".join("9" if c.isdigit() else ("A" if c.isupper() else "a") if c.isalpha() else c for c in str(value))
 
 
 async def _safe(label, coro):
@@ -92,6 +99,16 @@ async def main() -> int:
     for i, data in enumerate(raw.values()):
         print(f"--- cont {i + 1}")
         print(json.dumps({k: _shape(v) for k, v in data.items()}, indent=2, ensure_ascii=False))
+
+    print("\n=== Exemplu factură și plată (valori mascate: 9 = cifră, a/A = literă) ===")
+    for i, data in enumerate(raw.values()):
+        bills = find_list(data.get("history"), "objBillingHistoryEntity", "BillingHistory")
+        pays = find_list(data.get("history"), "objBillingPaymentHistoryEntity", "PaymentHistory")
+        print(f"--- cont {i + 1}")
+        print(json.dumps({
+            "factura": {k: _mask(v) for k, v in (bills[0] if bills else {}).items()},
+            "plata": {k: _mask(v) for k, v in (pays[0] if pays else {}).items()},
+        }, indent=2, ensure_ascii=False))
 
     print("\n=== Ce va vedea Home Assistant ===")
     for uan, data in raw.items():
