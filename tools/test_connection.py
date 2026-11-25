@@ -6,6 +6,7 @@ Utilizare:
     .venv/bin/python tools/test_connection.py            # cere utilizator + parolă
     .venv/bin/python tools/test_connection.py --dump out  # salvează JSON-urile brute
     .venv/bin/python tools/test_connection.py --exemplu   # doar exemplul de factură (mascat)
+    .venv/bin/python tools/test_connection.py --facturi   # diagnostic facturi plătite / neplătite
 
 Datele salvate cu --dump conțin informații personale (adresă, POD, cont).
 Nu le publica; pentru depanare trimite doar secțiunea "Structura răspunsurilor".
@@ -19,6 +20,7 @@ from datetime import date
 import getpass
 import json
 import os
+import re
 import sys
 import types
 from pathlib import Path
@@ -34,7 +36,12 @@ import aiohttp  # noqa: E402
 
 from hidroelectrica.api import HidroelectricaApi, HidroelectricaError  # noqa: E402
 from hidroelectrica.const import HISTORY_YEARS  # noqa: E402
-from hidroelectrica.parser import account_id, build_account_data, find_list  # noqa: E402
+from hidroelectrica.parser import (  # noqa: E402
+    account_id,
+    build_account_data,
+    find_list,
+    find_record,
+)
 
 
 def _shape(value, depth=0):
@@ -63,6 +70,53 @@ def _mask(value):
     return "".join("9" if c.isdigit() else ("A" if c.isupper() else "a") if c.isalpha() else c for c in str(value))
 
 
+_AMOUNT_RE = re.compile(r"^-?\d{1,7}([.,]\d{1,4})?$")
+_DATE_RE = re.compile(r"^(\d{1,2}/\d{1,2}/\d{4}|\d{4}-\d{2}-\d{2})")
+_WORD_RE = re.compile(r"^[A-Za-zĂÂÎȘȚăâîșț _-]{1,20}$")
+
+
+def _visible(value):
+    """Arată sume, date, valori logice și cuvinte scurte (statusuri);
+    maschează restul (identificatori, numere de cont, texte lungi)."""
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    text = str(value).strip()
+    if _DATE_RE.match(text) or _WORD_RE.match(text):
+        return text
+    if _AMOUNT_RE.match(text) and not (text.isdigit() and len(text) >= 6):
+        return text
+    return _mask(text)
+
+
+def _print_invoices(data, uan, label):
+    """Diagnostic: ce trimite serverul pentru fiecare factură și ce deduce integrarea."""
+    acc = build_account_data(uan, data)
+    bill = find_record(data.get("bill"), "rembalance", "billamount", "duedate", "invoicenumber")
+    bills = find_list(data.get("history"), "objBillingHistoryEntity", "BillingHistory")
+    pays = find_list(data.get("history"), "objBillingPaymentHistoryEntity", "PaymentHistory")
+    print(f"--- {label}")
+    print("GetBill:", json.dumps({k: _visible(v) for k, v in bill.items()}, ensure_ascii=False))
+    print(f"\nFacturi în istoric: {len(bills)}  (cea mai nouă prima)")
+    by_raw = {id(i.raw): i for i in acc.invoices}
+    for row in sorted(bills, key=lambda r: by_raw[id(r)].data_emitere or date.min, reverse=True):
+        inv = by_raw[id(row)]
+        extra = {k: _visible(v) for k, v in row.items() if k != "invoiceId"}
+        print(
+            f"  {inv.data_emitere} | scadență {inv.scadenta} | {inv.valoare:>9.2f} lei"
+            f" | integrare: {inv.status} (rest {inv.rest_plata:.2f})"
+            f" | server: {json.dumps(extra, ensure_ascii=False)}"
+        )
+    print(f"\nPlăți în istoric: {len(pays)}")
+    for p in acc.payments:
+        print(f"  {p['data']} | {p['suma']} lei | {p['canal']}")
+    total_inv = sum(i.valoare for i in acc.invoices)
+    total_pay = sum(p["suma"] or 0 for p in acc.payments)
+    print(
+        f"\nTotal facturat: {total_inv:.2f} | total plătit: {total_pay:.2f}"
+        f" | diferență: {total_inv - total_pay:.2f} | sold server (rembalance): {acc.balance}"
+    )
+
+
 async def _safe(label, coro):
     try:
         return await coro
@@ -77,6 +131,10 @@ async def main() -> int:
     parser.add_argument(
         "--exemplu", action="store_true",
         help="afișează doar exemplul de factură și plată (valori mascate)",
+    )
+    parser.add_argument(
+        "--facturi", action="store_true",
+        help="diagnostic facturi: sume, date și statusul calculat (identificatorii sunt mascați)",
     )
     args = parser.parse_args()
 
@@ -109,6 +167,12 @@ async def main() -> int:
                 "window": await _safe("GetWindowDates", api.get_window_dates(uan, number)),
                 "pods": await _safe("GetPods", api.get_pods(uan, number)),
             }
+
+    if args.facturi:
+        print("\n=== Diagnostic facturi (sume și date reale; identificatorii mascați) ===")
+        for i, (uan, data) in enumerate(raw.items()):
+            _print_invoices(data, uan, f"cont {i + 1}")
+        return 0
 
     if not args.exemplu:
         print("\n=== Structura răspunsurilor (fără valori) ===")
