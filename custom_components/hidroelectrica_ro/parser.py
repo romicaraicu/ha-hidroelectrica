@@ -269,12 +269,20 @@ class ConsumptionEntry:
     def data(self) -> date:
         return date(self.an, self.luna_nr, 1)
 
+    @property
+    def lei_pe_kwh(self) -> float | None:
+        """Prețul mediu al lunii (lei / kWh), dacă luna are și cost și consum."""
+        if self.lei is None or self.kwh <= 0:
+            return None
+        return round(self.lei / self.kwh, 4)
+
     def as_attr(self) -> dict[str, Any]:
         return {
             "luna": self.luna,
             "data": iso(self.data),
             "kwh": round(self.kwh, 2),
             "lei": round(self.lei, 2) if self.lei is not None else None,
+            "lei_pe_kwh": self.lei_pe_kwh,
         }
 
 
@@ -469,6 +477,46 @@ class AccountData:
             totals[key] = round(totals.get(key, 0.0) + entry.kwh, 2)
         return dict(sorted(totals.items(), reverse=True))
 
+    @property
+    def last_price(self) -> ConsumptionEntry | None:
+        """Cea mai recentă lună care are preț (cost și consum)."""
+        return next((e for e in reversed(self.consumption) if e.lei_pe_kwh is not None), None)
+
+    def yearly_prices(self) -> dict[str, dict[str, Any]]:
+        """Preț mediu pe ani: suma costurilor lunare / suma kWh din aceleași luni.
+
+        Lunile fără cost sunt lăsate deoparte (și din kWh), ca media să nu fie
+        trasă în jos. Dacă un an nu are deloc costuri lunare, se folosește
+        valoarea facturată în acel an împărțită la consumul anului.
+        """
+        years: dict[str, dict[str, Any]] = {}
+        for entry in self.consumption:
+            if entry.lei_pe_kwh is None:
+                continue
+            y = years.setdefault(str(entry.an), {"kwh": 0.0, "lei": 0.0, "luni": 0})
+            y["kwh"] += entry.kwh
+            y["lei"] += entry.lei or 0.0
+            y["luni"] += 1
+        result: dict[str, dict[str, Any]] = {}
+        for name, y in years.items():
+            result[name] = {
+                "kwh": round(y["kwh"], 2),
+                "lei": round(y["lei"], 2),
+                "luni": y["luni"],
+                "lei_pe_kwh": round(y["lei"] / y["kwh"], 4),
+                "sursa": "consum",
+            }
+        for name, cost in self.yearly_costs().items():
+            if name not in result and cost.get("lei_pe_kwh"):
+                result[name] = {
+                    "kwh": cost["kwh"],
+                    "lei": cost["facturat"],
+                    "luni": None,
+                    "lei_pe_kwh": round(cost["facturat"] / cost["kwh"], 4),
+                    "sursa": "facturi",
+                }
+        return dict(sorted(result.items(), reverse=True))
+
     def yearly_costs(self) -> dict[str, dict[str, Any]]:
         """Cost pe ani: `facturat` după data emiterii, `platit` după data plății."""
         years: dict[str, dict[str, Any]] = {}
@@ -512,6 +560,11 @@ class AccountData:
             "consum_ultima_luna_kwh": round(last.kwh, 2) if last else None,
             "luna": last.luna if last else None,
             "consum_anual_kwh": self.yearly_consumption(),
+            "pret_lunar": [
+                {"luna": e.luna, "kwh": e.kwh, "lei": e.lei, "lei_pe_kwh": e.lei_pe_kwh}
+                for e in reversed(self.consumption[-12:])
+            ],
+            "pret_anual": self.yearly_prices(),
             "cost_anual": self.yearly_costs(),
             "total_de_plata_lei": self.total_balance,
             "restant_lei": self.overdue_amount,

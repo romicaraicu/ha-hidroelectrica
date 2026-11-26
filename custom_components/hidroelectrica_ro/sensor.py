@@ -66,6 +66,21 @@ def _current_year_paid(d: AccountData) -> float | None:
     return costs.get(str(date.today().year), {}).get("platit", 0.0)
 
 
+def _price_attrs(d: AccountData) -> dict[str, Any]:
+    last = d.last_price
+    prices = d.yearly_prices()
+    current = prices.get(str(date.today().year), {})
+    return {
+        "luna": last.luna if last else None,
+        "data": iso(last.data) if last else None,
+        "pret_an_curent": current.get("lei_pe_kwh"),
+        "pret_lunar": [
+            e.as_attr() for e in reversed(d.consumption) if e.lei_pe_kwh is not None
+        ][:HISTORY_LIMIT],
+        "pret_anual": prices,
+    }
+
+
 def _cost_attrs(d: AccountData) -> dict[str, Any]:
     costs = d.yearly_costs()
     current = costs.get(str(date.today().year), {})
@@ -157,6 +172,14 @@ SENSORS: tuple[HSensorDescription, ...] = (
         suggested_display_precision=2,
         value_fn=_current_year_paid,
         attrs_fn=_cost_attrs,
+    ),
+    HSensorDescription(
+        key="pret_kwh",
+        icon="mdi:cash-fast",
+        native_unit_of_measurement=f"{CURRENCY}/{UnitOfEnergy.KILO_WATT_HOUR}",
+        suggested_display_precision=2,
+        value_fn=lambda d: round(d.last_price.lei_pe_kwh, 4) if d.last_price else None,
+        attrs_fn=_price_attrs,
     ),
     HSensorDescription(
         key="total_de_plata",

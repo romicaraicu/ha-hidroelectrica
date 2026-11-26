@@ -2,7 +2,8 @@
 #   Setări -> Marketplace -> Add from link -> RomRider/apexcharts-card -> Install
 #   (pe Home Assistant mai vechi de 2026.11: HACS -> Frontend -> apexcharts-card).
 # Înlocuiește `0000000000` cu numărul contului și adaugă cardul într-un
-# dashboard (Adaugă card -> Manual -> lipește). Sunt două grafice: pe luni și pe ani.
+# dashboard (Adaugă card -> Manual -> lipește). Sunt patru grafice: consumul pe
+# luni și pe ani, apoi prețul mediu pe kWh pe luni și pe ani.
 
 type: vertical-stack
 cards:
@@ -63,4 +64,66 @@ cards:
           const a = entity.attributes.consum_anual || {};
           return Object.entries(a)
             .map(([an, kwh]) => [new Date(Number(an), 6, 1).getTime(), kwh])
+            .sort((x, y) => x[0] - y[0]);
+  - type: custom:apexcharts-card
+    header:
+      show: true
+      title: Preț mediu lunar (lei/kWh)
+      show_states: false
+    graph_span: 2y
+    span:
+      end: month
+    apex_config:
+      chart:
+        height: 240
+      stroke:
+        width: 3
+      markers:
+        size: 4
+      yaxis:
+        decimalsInFloat: 2
+      dataLabels:
+        enabled: false
+    series:
+      - entity: sensor.hidroelectrica_ro_0000000000_pret_kwh
+        name: Preț
+        type: line
+        color: "#5C6BC0"
+        float_precision: 2
+        data_generator: |
+          const p = entity.attributes.pret_lunar || [];
+          return p
+            .filter(e => e.data && e.lei_pe_kwh != null)
+            .map(e => [new Date(e.data + "T12:00:00").getTime(), e.lei_pe_kwh])
+            .reverse();
+  - type: custom:apexcharts-card
+    header:
+      show: true
+      title: Preț mediu anual (lei/kWh)
+      show_states: false
+    graph_span: 5y
+    span:
+      end: year
+    apex_config:
+      chart:
+        height: 220
+      plotOptions:
+        bar:
+          columnWidth: 50%
+          borderRadius: 4
+      dataLabels:
+        enabled: true
+      xaxis:
+        labels:
+          format: yyyy
+    series:
+      - entity: sensor.hidroelectrica_ro_0000000000_pret_kwh
+        name: Preț
+        type: column
+        color: "#8E24AA"
+        float_precision: 2
+        data_generator: |
+          const a = entity.attributes.pret_anual || {};
+          return Object.entries(a)
+            .map(([an, v]) => [new Date(Number(an), 6, 1).getTime(), v.lei_pe_kwh])
             .sort((x, y) => x[0] - y[0]);

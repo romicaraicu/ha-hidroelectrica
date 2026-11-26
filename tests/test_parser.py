@@ -133,3 +133,30 @@ def test_zero_current_bill_is_ignored() -> None:
     }
     acc = build_account_data("8001", raw)
     assert len(acc.invoices) == 1 and acc.invoices[0].status == "platita"
+
+
+def test_prices_skip_months_without_cost_and_fall_back_to_invoices() -> None:
+    raw = {
+        "usage": {"result": {"Data": {"objUsageGenerationResultSetTwo": [
+            {"Month": "Jan", "Year": "2026", "value": "100", "UsageValue": "80"},
+            {"Month": "Feb", "Year": "2026", "value": "300"},  # fără cost: ignorată
+            {"Month": "Mar", "Year": "2026", "value": "100", "UsageValue": "100"},
+            {"Month": "Dec", "Year": "2025", "value": "200"},  # 2025 fără costuri lunare
+        ]}}},
+        "history": _history(("12/10/2025", "12/30/2025", "250.00")),
+    }
+    acc = build_account_data("8001", raw)
+    assert acc.last_price.luna == "martie 2026" and acc.last_price.lei_pe_kwh == 1.0
+    prices = acc.yearly_prices()
+    assert prices["2026"] == {"kwh": 200.0, "lei": 180.0, "luni": 2, "lei_pe_kwh": 0.9, "sursa": "consum"}
+    assert prices["2025"] == {"kwh": 200.0, "lei": 250.0, "luni": None, "lei_pe_kwh": 1.25, "sursa": "facturi"}
+    assert list(prices) == ["2026", "2025"]
+
+
+def test_no_usage_cost_means_no_price() -> None:
+    raw = {"usage": {"result": {"Data": {"objUsageGenerationResultSetTwo": [
+        {"Month": "Jan", "Year": "2026", "value": "100"},
+    ]}}}}
+    acc = build_account_data("8001", raw)
+    assert acc.last_price is None and acc.yearly_prices() == {}
+    assert acc.consumption[0].as_attr()["lei_pe_kwh"] is None

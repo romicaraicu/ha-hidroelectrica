@@ -29,13 +29,15 @@ Dacă ai contract de energie electrică cu Hidroelectrica și folosești Home As
 | **Am vreo factură întârziată?** | senzorul binar `Factură restantă` și `Următoarea scadență` |
 | **Ce am plătit deja?** | `Facturi plătite`, `Ultima plată` și lista plăților recente |
 | **Cât m-a costat curentul pe fiecare an?** | `Plătit în anul curent` + tabel pe ani: plătit, facturat, kWh, lei/kWh |
+| **Cât plătesc pe kWh?** | `Preț pe kWh` (lei/kWh): ultima lună, media anului, istoric pe luni și pe ani |
 | **Când pot transmite indexul?** | `Perioadă transmitere index` + senzorul `Transmitere index permisă` |
 | **Ce date are locul de consum?** | `Loc de consum`: adresă, cont, POD, distribuitor |
 
 Pe lângă senzori ai:
 - un buton **Actualizare date**
 - un **dashboard** gata făcut, cu tabele de consum pe luni și pe ani
-- **grafice** de consum lunar și anual (card ApexCharts, opțional)
+- un tab separat **Preț kWh** în dashboard, cu prețul pe luni și pe ani
+- **grafice** de consum și de preț, lunar și anual (card ApexCharts, opțional)
 
 ---
 

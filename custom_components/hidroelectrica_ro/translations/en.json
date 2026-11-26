@@ -61,6 +61,9 @@
       "cost_an_curent": {
         "name": "Paid this year"
       },
+      "pret_kwh": {
+        "name": "Price per kWh"
+      },
       "total_de_plata": {
         "name": "Amount due"
       },

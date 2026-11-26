@@ -77,7 +77,7 @@ Copiază folderul `custom_components/hidroelectrica_ro` în `/config/custom_comp
 2. Introdu **utilizatorul** și **parola** iHidro
 3. Dacă ai **mai multe locuri de consum**, bifează-le pe cele dorite și alege intervalul de citire (implicit 6 ore)
 
-Fiecare loc de consum devine un dispozitiv „Hidroelectrica *adresa*”, cu 13 senzori, 2 senzori binari și un buton. Detalii în [entitati.md](entitati.md).
+Fiecare loc de consum devine un dispozitiv „Hidroelectrica *adresa*”, cu 14 senzori, 2 senzori binari și un buton. Detalii în [entitati.md](entitati.md).
 
 | Mesaj | Ce faci |
 |---|---|
@@ -95,6 +95,7 @@ Dashboard-ul `dashboard/hidroelectrica_dashboard.yaml` folosește doar carduri i
 - **Facturi de plată**, **Facturi plătite** și **Plăți recente**
 - **Consum pe luni** și **Consum pe ani**, cu bare
 - **Cost pe ani**: plătit, facturat, de plată, kWh, lei/kWh
+- un al doilea tab, **Preț kWh**: prețul ultimei luni, media anului, tabel pe luni (24) și pe ani
 
 **Pas 1: află numărul contului.** E atributul `cont` al senzorului *Loc de consum* (sau numărul de serie al dispozitivului, dacă nu e POD-ul). Entitățile se numesc `sensor.hidroelectrica_ro_<cont>_…`.
 
@@ -117,7 +118,7 @@ Se creează `dashboard/hidroelectrica_<cont>.yaml` și `dashboard/card_grafic_co
 2. În panou: ✏️ → **Adaugă card** → **Manual**
 3. Lipește conținutul fișierului `card_grafic_consum_<cont>.yaml`
 
-Primești două grafice cu coloane: consumul lunar pe ultimii 2 ani și consumul total pe fiecare an.
+Primești patru grafice: consumul lunar pe ultimii 2 ani, consumul total pe fiecare an, prețul mediu lunar (lei/kWh, linie) și prețul mediu anual.
 
 ---
 

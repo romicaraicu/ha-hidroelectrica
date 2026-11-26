@@ -1,5 +1,12 @@
 # Istoric versiuni
 
+## 0.1.4
+
+- Senzor nou **Preț pe kWh** (`pret_kwh`, lei/kWh): prețul ultimei luni, media anului curent, istoric pe luni (`pret_lunar`) și pe ani (`pret_anual`)
+- Prețul lunar = costul lunii din iHidro / kWh; media anuală = suma costurilor / suma kWh din lunile cu cost (dacă un an nu are costuri lunare: facturat / kWh)
+- Dashboard: tab nou **Preț kWh** cu tabel pe luni și pe ani; `card_grafic_consum_apexcharts.yaml` are două grafice noi de preț
+- Istoricul de consum (`istoric`) include `lei_pe_kwh` pentru fiecare lună
+
 ## 0.1.3
 
 - Facturi de plată: factura curentă (din `GetBill`) e luată în calcul și când nu apare încă în istoricul de facturi. Înainte, soldul se atribuia unor facturi deja plătite, care apăreau greșit ca restante

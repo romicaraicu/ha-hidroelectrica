@@ -230,3 +230,80 @@ views:
 
               <small>„Facturat” după data emiterii facturii, „Plătit” după data plății. Sume în lei.</small>
               {% endif %}
+
+  # ================================================================ PREȚ kWh
+  - title: Preț kWh
+    path: hidroelectrica-pret
+    icon: mdi:cash-fast
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Preț pe kWh
+            icon: mdi:cash-fast
+          - type: tile
+            entity: sensor.hidroelectrica_ro_0000000000_pret_kwh
+            name: Ultima lună
+            color: indigo
+            grid_options:
+              columns: 6
+          - type: markdown
+            grid_options:
+              columns: 6
+            content: |-
+              {% set s = 'sensor.hidroelectrica_ro_0000000000_pret_kwh' %}
+              {% set an = state_attr(s, 'pret_an_curent') %}
+              **Media anului {{ now().year }}**
+
+              ### {{ '%.2f' | format(an) ~ ' lei/kWh' if an else '—' }}
+          - type: markdown
+            content: |-
+              {% set s = 'sensor.hidroelectrica_ro_0000000000_pret_kwh' %}
+              Prețul mediu = costul lunii raportat de iHidro împărțit la kWh consumați.
+              Ultima lună cu preț: **{{ state_attr(s, 'luna') or '—' }}**.
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Preț pe luni
+            icon: mdi:calendar-month-outline
+          - type: markdown
+            content: |-
+              {% set p = state_attr('sensor.hidroelectrica_ro_0000000000_pret_kwh', 'pret_lunar') or [] %}
+              {% if p | count == 0 %}
+              Nu există costuri lunare în datele iHidro.
+              {% else %}
+              {% set vals = p[:24] | map(attribute='lei_pe_kwh') | list %}
+              {% set minv, maxv = vals | min, vals | max %}
+              | Lună | kWh | Lei | Lei/kWh | |
+              |:--|--:|--:|--:|:--|
+              {% for e in p[:24] -%}
+              | {{ e.luna }} | {{ e.kwh | round(0) | int }} | {{ '%.2f' | format(e.lei) }} | **{{ '%.2f' | format(e.lei_pe_kwh) }}** | {{ '█' * ((2 + (e.lei_pe_kwh - minv) / (maxv - minv) * 13) | round(0) | int) if maxv > minv else '████████' }} |
+              {% endfor %}
+
+              <small>Barele arată prețul între minimul ({{ '%.2f' | format(minv) }}) și maximul ({{ '%.2f' | format(maxv) }}) din tabel.</small>
+              {% endif %}
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Preț pe ani
+            icon: mdi:chart-timeline-variant
+          - type: markdown
+            content: |-
+              {% set a = state_attr('sensor.hidroelectrica_ro_0000000000_pret_kwh', 'pret_anual') or {} %}
+              {% if a | count == 0 %}
+              Nu există date de preț.
+              {% else %}
+              {% set vals = a.values() | map(attribute='lei_pe_kwh') | list %}
+              {% set minv, maxv = vals | min, vals | max %}
+              | An | kWh | Lei | Lei/kWh | |
+              |:--|--:|--:|--:|:--|
+              {% for an, v in a | dictsort(reverse=true) -%}
+              | **{{ an }}**{{ '*' if v.sursa == 'facturi' else '' }} | {{ v.kwh | round(0) | int if v.kwh else '—' }} | {{ '%.2f' | format(v.lei) }} | **{{ '%.2f' | format(v.lei_pe_kwh) }}** | {{ '█' * ((2 + (v.lei_pe_kwh - minv) / (maxv - minv) * 13) | round(0) | int) if maxv > minv else '████████' }} |
+              {% endfor %}
+
+              <small>Media anului = suma costurilor lunare / suma kWh din acele luni.{% if a.values() | selectattr('sursa', 'eq', 'facturi') | list | count %} * calculat din facturile anului (fără costuri lunare).{% endif %}</small>
+              {% endif %}

@@ -12,6 +12,7 @@ Fiecare loc de consum e un dispozitiv. Entitățile au ID-uri previzibile: `<pla
 | `consum_ultima_luna` | Consum ultima lună | kWh | `luna`, `data`, `kwh`, `lei`, `consum_anual`, `istoric` (până la 36 de luni, cea mai nouă prima) |
 | `consum_an_curent` | Consum an curent | kWh | `consum_anual` (`{"2026": 2450.0, "2025": …}`) |
 | `cost_an_curent` | Plătit în anul curent | lei (după data plății) | `facturat`, `de_plata`, `facturi`, `cost_anual` |
+| `pret_kwh` | Preț pe kWh | lei/kWh în ultima lună cu cost | `luna`, `data`, `pret_an_curent`, `pret_lunar` (până la 36 de luni: `luna`, `kwh`, `lei`, `lei_pe_kwh`), `pret_anual` |
 | `total_de_plata` | Total de plată | lei (soldul din iHidro) | `restant`, `urmatoarea_scadenta`, `facturi_neplatite` |
 | `facturi_neplatite` | Facturi neplătite | număr | `total_rest_plata`, `restant`, `urmatoarea_scadenta`, `facturi` |
 | `facturi_platite` | Facturi plătite | număr | `ultima_factura_platita`, `facturi` (ultimele 12) |
@@ -21,6 +22,8 @@ Fiecare loc de consum e un dispozitiv. Entitățile au ID-uri previzibile: `<pla
 | `perioada_index` | Perioadă transmitere index | „20.11.2026 - 27.11.2026” | `inceput`, `sfarsit`, `activa`, `zile_pana_la_inceput`, `zile_ramase` |
 | `perioada_index_inceput` | Început perioadă index | dată | – |
 | `perioada_index_sfarsit` | Sfârșit perioadă index | dată | – |
+
+**Prețul pe kWh** = costul lunii raportat de iHidro / kWh consumați în acea lună. `pret_anual` are, pentru fiecare an: `kwh`, `lei`, `luni`, `lei_pe_kwh` și `sursa`. Sursa e `consum` când media vine din costurile lunare; lunile fără cost sunt lăsate deoparte. E `facturi` când anul nu are costuri lunare și media e facturat / kWh. Și elementele din `istoric` (senzorul *Consum ultima lună*) au acum `lei_pe_kwh`.
 
 `cost_anual` are, pentru fiecare an: `facturat` (după data emiterii), `platit` (după data plății), `de_plata`, `facturi`, `plati`, `kwh`, `lei_pe_kwh`.
 

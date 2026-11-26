@@ -66,6 +66,18 @@ async def test_entities(hass: HomeAssistant, mock_api) -> None:
     assert s("consum_ultima_luna").attributes["luna"] == f"noiembrie {Y}"
     assert len(s("consum_ultima_luna").attributes["istoric"]) == 3
     assert float(s("consum_an_curent").state) == 455.4
+    # preț pe kWh: noiembrie 160 lei / 245 kWh; an curent 300 lei / 455.4 kWh
+    price = s("pret_kwh")
+    assert float(price.state) == round(160 / 245, 4)
+    assert price.attributes["unit_of_measurement"] == "RON/kWh"
+    assert price.attributes["luna"] == f"noiembrie {Y}"
+    assert price.attributes["pret_an_curent"] == round(300 / 455.4, 4)
+    assert [p["luna"] for p in price.attributes["pret_lunar"]] == [
+        f"noiembrie {Y}", f"octombrie {Y}", f"septembrie {Y - 1}",
+    ]
+    assert price.attributes["pret_anual"][str(Y - 1)] == {
+        "kwh": 200.0, "lei": 130.5, "luni": 1, "lei_pe_kwh": 0.6525, "sursa": "consum",
+    }
     assert float(s("total_de_plata").state) == 180.0
     assert s("total_de_plata").attributes["unit_of_measurement"] == "RON"
     # soldul 180 acoperă H0003 (150) + 30 din H0002 -> 2 neplătite, 1 plătită
@@ -165,3 +177,7 @@ async def test_dashboard_templates_render(hass: HomeAssistant, mock_api) -> None
     assert "H0003" in joined and f"noiembrie {Y}" in joined and "Poți transmite" in joined
     assert "|:--|:--|:--|--:|:--|\n| H0003" in joined
     assert f"| **{Y}** | **70.00** | 250.00 | 180.00 | 455 | 0.55 |" in joined
+    # tab-ul „Preț kWh”
+    assert f"| noiembrie {Y} | 245 | 160.00 | **0.65** |" in joined
+    assert f"| **{Y}** | 455 | 300.00 | **0.66** |" in joined
+    assert "### 0.66 lei/kWh" in joined
